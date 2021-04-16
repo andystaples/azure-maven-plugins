@@ -65,6 +65,7 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -343,7 +344,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             final List<Subscription> subscriptions = account.getSubscriptions();
             final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
-
+            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
             this.subscriptionId = targetSubscriptionId;
             return AzureClientFactory.getAzureClient(getUserAgent(), targetSubscriptionId);
         } catch (AzureLoginException | IOException e) {
@@ -364,6 +365,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
         promptAzureEnvironment(auth.getEnvironment());
+        MavenAuthUtils.disableIdentityLogs();
         accountLogin(auth);
         final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
         if (account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE) {
@@ -717,6 +719,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (StringUtils.isBlank(targetSubscriptionId)) {
             return selectSubscription(subscriptions.toArray(new Subscription[0]));
         }
+
         return targetSubscriptionId;
     }
 
